@@ -16,6 +16,8 @@ type Player struct {
 	health    int
 	maxHealth int
 	damage    int
+	weapon    *Item
+	armor     *Item
 }
 
 func (p *Player) SendMessage(message string) {
@@ -94,7 +96,7 @@ func (p *Player) HandleCommand(game *Game, command string) {
 			}
 		}
 		
-	case "go", "north", "n", "south", "s", "east", "e", "west", "w":
+	case "go", "north", "n", "south", "s", "east", "e", "west", "w", "up", "u", "down", "d":
 		direction := cmd
 		if cmd == "go" {
 			if len(parts) < 2 {
@@ -112,6 +114,10 @@ func (p *Player) HandleCommand(game *Game, command string) {
 			direction = "east"
 		} else if direction == "w" {
 			direction = "west"
+		} else if direction == "u" {
+			direction = "up"
+		} else if direction == "d" {
+			direction = "down"
 		}
 		
 		nextRoom, exists := p.location.exits[direction]
@@ -221,6 +227,83 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		p.SendMessage(fmt.Sprintf("Health: %d/%d", p.health, p.maxHealth))
 		p.SendMessage(p.GetHealthStatus())
 		
+	case "equip", "wield", "wear":
+		if len(parts) < 2 {
+			p.SendMessage("Equip what?")
+			return
+		}
+		itemName := strings.ToLower(strings.Join(parts[1:], " "))
+		
+		var item *Item
+		var itemIndex int = -1
+		for i, invItem := range p.inventory {
+			if strings.ToLower(invItem.name) == itemName {
+				item = invItem
+				itemIndex = i
+				break
+			}
+		}
+		
+		if item == nil {
+			p.SendMessage("You don't have that item.")
+			return
+		}
+		
+		if item.itemType == "weapon" {
+			if p.weapon != nil {
+				p.SendMessage(fmt.Sprintf("You unequip %s and equip %s.", p.weapon.name, item.name))
+				p.inventory = append(p.inventory, p.weapon)
+			} else {
+				p.SendMessage(fmt.Sprintf("You equip %s.", item.name))
+			}
+			p.weapon = item
+		} else if item.itemType == "armor" {
+			if p.armor != nil {
+				p.SendMessage(fmt.Sprintf("You remove %s and wear %s.", p.armor.name, item.name))
+				p.inventory = append(p.inventory, p.armor)
+			} else {
+				p.SendMessage(fmt.Sprintf("You wear %s.", item.name))
+			}
+			p.armor = item
+		} else {
+			p.SendMessage("You can't equip that item.")
+			return
+		}
+		
+		p.inventory = append(p.inventory[:itemIndex], p.inventory[itemIndex+1:]...)
+		
+	case "unequip", "remove":
+		if len(parts) < 2 {
+			p.SendMessage("Remove what?")
+			return
+		}
+		itemName := strings.ToLower(strings.Join(parts[1:], " "))
+		
+		if p.weapon != nil && strings.ToLower(p.weapon.name) == itemName {
+			p.SendMessage(fmt.Sprintf("You unequip %s.", p.weapon.name))
+			p.inventory = append(p.inventory, p.weapon)
+			p.weapon = nil
+		} else if p.armor != nil && strings.ToLower(p.armor.name) == itemName {
+			p.SendMessage(fmt.Sprintf("You remove %s.", p.armor.name))
+			p.inventory = append(p.inventory, p.armor)
+			p.armor = nil
+		} else {
+			p.SendMessage("You don't have that equipped.")
+		}
+		
+	case "equipment", "eq":
+		p.SendMessage("Equipment:")
+		if p.weapon != nil {
+			p.SendMessage(fmt.Sprintf("  Weapon: %s (+%d damage)", p.weapon.name, p.weapon.damage))
+		} else {
+			p.SendMessage("  Weapon: none")
+		}
+		if p.armor != nil {
+			p.SendMessage(fmt.Sprintf("  Armor: %s (+%d defense)", p.armor.name, p.armor.defense))
+		} else {
+			p.SendMessage("  Armor: none")
+		}
+		
 	case "say":
 		if len(parts) < 2 {
 			p.SendMessage("Say what?")
@@ -237,6 +320,6 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		}
 		
 	default:
-		p.SendMessage("Unknown command. Try: look, go <direction>, get <item>, drop <item>, inventory, examine <item>, attack <monster>, health, who, say, quit")
+		p.SendMessage("Unknown command. Try: look, go <direction>, get <item>, drop <item>, inventory, examine <item>, equip <item>, equipment, attack <monster>, health, who, say, quit")
 	}
 }

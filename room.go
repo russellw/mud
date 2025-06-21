@@ -3,6 +3,9 @@ package main
 type Item struct {
 	name        string
 	description string
+	itemType    string // "weapon", "armor", "misc"
+	damage      int    // for weapons
+	defense     int    // for armor
 }
 
 type Room struct {

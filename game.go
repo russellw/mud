@@ -39,7 +39,7 @@ func (g *Game) createWorld() {
 		name:        "The Prancing Pony Tavern",
 		description: "A cozy tavern filled with the smell of ale and roasted meat. Wooden tables and chairs are scattered around.",
 		players:     make([]*Player, 0),
-		items:       []*Item{{name: "wooden mug", description: "A sturdy wooden drinking mug"}},
+		items:       []*Item{{name: "wooden mug", description: "A sturdy wooden drinking mug", itemType: "misc", damage: 0, defense: 0}},
 		monsters:    make([]*Monster, 0),
 		exits:       make(map[string]*Room),
 	}
@@ -48,7 +48,7 @@ func (g *Game) createWorld() {
 		name:        "Dark Forest",
 		description: "A dense forest with towering trees that block most of the sunlight. Strange sounds echo from the shadows.",
 		players:     make([]*Player, 0),
-		items:       []*Item{{name: "twisted branch", description: "A gnarled branch that could serve as a walking stick"}},
+		items:       []*Item{{name: "twisted branch", description: "A gnarled branch that could serve as a walking stick", itemType: "weapon", damage: 2, defense: 0}},
 		monsters:    make([]*Monster, 0),
 		exits:       make(map[string]*Room),
 	}
@@ -57,7 +57,7 @@ func (g *Game) createWorld() {
 		name:        "Marketplace",
 		description: "A busy marketplace with merchants hawking their wares. Colorful stalls line the cobblestone square.",
 		players:     make([]*Player, 0),
-		items:       []*Item{{name: "shiny coin", description: "A gold coin that glints in the sunlight"}},
+		items:       []*Item{{name: "shiny coin", description: "A gold coin that glints in the sunlight", itemType: "misc", damage: 0, defense: 0}},
 		monsters:    make([]*Monster, 0),
 		exits:       make(map[string]*Room),
 	}
@@ -66,26 +66,124 @@ func (g *Game) createWorld() {
 		name:        "Ancient Temple",
 		description: "A sacred temple with marble columns and intricate carvings. A sense of peace fills the air.",
 		players:     make([]*Player, 0),
-		items:       []*Item{{name: "prayer book", description: "An old leather-bound book of prayers and rituals"}},
+		items:       []*Item{{name: "prayer book", description: "An old leather-bound book of prayers and rituals", itemType: "misc", damage: 0, defense: 0}},
 		monsters:    make([]*Monster, 0),
 		exits:       make(map[string]*Room),
 	}
 	
+	dungeon := &Room{
+		name:        "Dungeon Entrance",
+		description: "A crumbling stone entrance leads into darkness. Ancient torches flicker on the walls.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "rusty key", description: "An old iron key, corroded with age", itemType: "misc", damage: 0, defense: 0}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	deepForest := &Room{
+		name:        "Deep Forest",
+		description: "The forest grows darker here. Thick canopy blocks all sunlight. Something large moves in the shadows.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "iron sword", description: "A well-forged iron sword with a sharp edge", itemType: "weapon", damage: 8, defense: 0}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	catacombs := &Room{
+		name:        "Ancient Catacombs",
+		description: "Narrow stone passages wind through countless burial chambers. The air is thick with age and mystery.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "leather armor", description: "Sturdy leather armor that provides good protection", itemType: "armor", damage: 0, defense: 3}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	wizardTower := &Room{
+		name:        "Wizard's Tower",
+		description: "A tall stone tower filled with magical artifacts and glowing crystals. Books float in mid-air.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "magic staff", description: "A wooden staff topped with a glowing crystal orb", itemType: "weapon", damage: 10, defense: 0}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	dragonLair := &Room{
+		name:        "Dragon's Lair",
+		description: "A massive cavern with piles of gold and treasure. Scorch marks cover the walls. The air shimmers with heat.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "dragon scale", description: "A massive golden scale, still warm to the touch", itemType: "armor", damage: 0, defense: 8}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	cemetery := &Room{
+		name:        "Moonlit Cemetery",
+		description: "Ancient gravestones stretch as far as you can see. Mist swirls between the weathered monuments.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "silver cross", description: "A blessed silver cross that gleams in the moonlight", itemType: "weapon", damage: 6, defense: 0}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	armory := &Room{
+		name:        "Castle Armory",
+		description: "Weapons and armor line the walls of this military storehouse. Everything is kept in perfect condition.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "steel shield", description: "A heavy steel shield emblazoned with a royal crest", itemType: "armor", damage: 0, defense: 5}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	// Connect main areas
 	townSquare.exits["north"] = tavern
 	townSquare.exits["south"] = forest
 	townSquare.exits["east"] = market
 	townSquare.exits["west"] = temple
 	
 	tavern.exits["south"] = townSquare
+	tavern.exits["up"] = armory
+	
 	forest.exits["north"] = townSquare
+	forest.exits["south"] = deepForest
+	forest.exits["down"] = dungeon
+	
 	market.exits["west"] = townSquare
+	
 	temple.exits["east"] = townSquare
+	temple.exits["down"] = catacombs
+	temple.exits["up"] = wizardTower
+	
+	// Connect extended areas
+	dungeon.exits["up"] = forest
+	dungeon.exits["north"] = catacombs
+	
+	deepForest.exits["north"] = forest
+	deepForest.exits["west"] = cemetery
+	deepForest.exits["east"] = dragonLair
+	
+	catacombs.exits["up"] = temple
+	catacombs.exits["south"] = dungeon
+	
+	wizardTower.exits["down"] = temple
+	
+	dragonLair.exits["west"] = deepForest
+	
+	cemetery.exits["east"] = deepForest
+	
+	armory.exits["down"] = tavern
 	
 	g.rooms["town_square"] = townSquare
 	g.rooms["tavern"] = tavern
 	g.rooms["forest"] = forest
 	g.rooms["market"] = market
 	g.rooms["temple"] = temple
+	g.rooms["dungeon"] = dungeon
+	g.rooms["deep_forest"] = deepForest
+	g.rooms["catacombs"] = catacombs
+	g.rooms["wizard_tower"] = wizardTower
+	g.rooms["dragon_lair"] = dragonLair
+	g.rooms["cemetery"] = cemetery
+	g.rooms["armory"] = armory
 	
 	g.spawnMonsters()
 }
@@ -116,6 +214,7 @@ func (g *Game) RemovePlayer(player *Player) {
 }
 
 func (g *Game) spawnMonsters() {
+	// Original forest monsters
 	rat := NewMonster("giant rat", "A large, mangy rat with red eyes and yellowed teeth", 15, 3, true)
 	rat.location = g.rooms["forest"]
 	g.rooms["forest"].monsters = append(g.rooms["forest"].monsters, rat)
@@ -124,13 +223,58 @@ func (g *Game) spawnMonsters() {
 	wolf.location = g.rooms["forest"]
 	g.rooms["forest"].monsters = append(g.rooms["forest"].monsters, wolf)
 	
+	// Market monsters
 	bandit := NewMonster("bandit", "A shifty-looking human in leather armor, clutching a rusty dagger", 20, 5, true)
 	bandit.location = g.rooms["market"]
 	g.rooms["market"].monsters = append(g.rooms["market"].monsters, bandit)
 	
+	// Temple monsters
 	cultist := NewMonster("shadowy cultist", "A robed figure with glowing red eyes chanting in an unknown language", 18, 4, true)
 	cultist.location = g.rooms["temple"]
 	g.rooms["temple"].monsters = append(g.rooms["temple"].monsters, cultist)
+	
+	// Deep forest monsters
+	bear := NewMonster("cave bear", "A massive brown bear with razor-sharp claws and a thunderous roar", 40, 8, true)
+	bear.location = g.rooms["deep_forest"]
+	g.rooms["deep_forest"].monsters = append(g.rooms["deep_forest"].monsters, bear)
+	
+	// Dungeon monsters
+	skeleton := NewMonster("skeleton warrior", "An ancient skeleton in rusted armor, wielding a bone sword", 20, 5, false)
+	skeleton.location = g.rooms["dungeon"]
+	g.rooms["dungeon"].monsters = append(g.rooms["dungeon"].monsters, skeleton)
+	
+	// Catacombs monsters
+	zombie := NewMonster("shambling zombie", "A rotting corpse that moves with unnatural hunger", 25, 4, true)
+	zombie.location = g.rooms["catacombs"]
+	g.rooms["catacombs"].monsters = append(g.rooms["catacombs"].monsters, zombie)
+	
+	mummy := NewMonster("ancient mummy", "Wrapped in decaying bandages, this ancient guardian protects the tombs", 30, 6, false)
+	mummy.location = g.rooms["catacombs"]
+	g.rooms["catacombs"].monsters = append(g.rooms["catacombs"].monsters, mummy)
+	
+	// Wizard tower monsters
+	imp := NewMonster("fire imp", "A small demonic creature wreathed in flames with a mischievous grin", 15, 7, true)
+	imp.location = g.rooms["wizard_tower"]
+	g.rooms["wizard_tower"].monsters = append(g.rooms["wizard_tower"].monsters, imp)
+	
+	// Dragon lair monsters
+	dragon := NewMonster("ancient dragon", "A colossal red dragon with scales like molten gold and eyes like burning coals", 100, 15, true)
+	dragon.location = g.rooms["dragon_lair"]
+	g.rooms["dragon_lair"].monsters = append(g.rooms["dragon_lair"].monsters, dragon)
+	
+	// Cemetery monsters
+	ghost := NewMonster("wandering spirit", "A translucent figure that wails mournfully as it drifts between the graves", 20, 3, false)
+	ghost.location = g.rooms["cemetery"]
+	g.rooms["cemetery"].monsters = append(g.rooms["cemetery"].monsters, ghost)
+	
+	wraith := NewMonster("vengeful wraith", "A dark specter filled with malice and hatred for the living", 35, 9, true)
+	wraith.location = g.rooms["cemetery"]
+	g.rooms["cemetery"].monsters = append(g.rooms["cemetery"].monsters, wraith)
+	
+	// Armory monsters
+	guard := NewMonster("castle guard", "A heavily armored soldier sworn to protect the castle's treasures", 35, 7, false)
+	guard.location = g.rooms["armory"]
+	g.rooms["armory"].monsters = append(g.rooms["armory"].monsters, guard)
 }
 
 func (g *Game) gameLoop() {
@@ -179,7 +323,11 @@ func (g *Game) PlayerAttackMonster(player *Player, monsterName string) {
 		return
 	}
 	
-	damage := player.damage + rand.Intn(3) - 1
+	baseDamage := player.damage
+	if player.weapon != nil {
+		baseDamage += player.weapon.damage
+	}
+	damage := baseDamage + rand.Intn(3) - 1
 	if damage < 1 {
 		damage = 1
 	}
@@ -200,7 +348,17 @@ func (g *Game) MonsterAttackPlayer(monster *Monster, player *Player) {
 		return
 	}
 	
-	damage := monster.damage + rand.Intn(5) - 2
+	baseDamage := monster.damage + rand.Intn(5) - 2
+	if baseDamage < 1 {
+		baseDamage = 1
+	}
+	
+	defense := 0
+	if player.armor != nil {
+		defense = player.armor.defense
+	}
+	
+	damage := baseDamage - defense
 	if damage < 1 {
 		damage = 1
 	}
