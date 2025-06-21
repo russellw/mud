@@ -304,7 +304,113 @@ func TestGameplayTranscript(t *testing.T) {
 	}
 	clearPlayerMessages(alice)
 	
-	transcript = append(transcript, "\n>>> Checking who is online")
+	transcript = append(transcript, "\n>>> Alice explores the new pirate cove")
+	alice.HandleCommand(game, "east")
+	alice.HandleCommand(game, "south")
+	messages = getPlayerMessages(alice)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Alice: %s", msg))
+	}
+	clearPlayerMessages(alice)
+	
+	transcript = append(transcript, "\n>>> Alice examines the cutlass with enhanced examine")
+	alice.HandleCommand(game, "examine cutlass")
+	messages = getPlayerMessages(alice)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Alice: %s", msg))
+	}
+	clearPlayerMessages(alice)
+	
+	transcript = append(transcript, "\n>>> Alice gets the cutlass and encounters sea monsters")
+	alice.HandleCommand(game, "get cutlass")
+	alice.HandleCommand(game, "attack bloodthirsty pirate")
+	messages = getPlayerMessages(alice)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Alice: %s", msg))
+	}
+	clearPlayerMessages(alice)
+	
+	transcript = append(transcript, "\n>>> Alice explores the volcanic cavern underground")
+	alice.HandleCommand(game, "down")
+	messages = getPlayerMessages(alice)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Alice: %s", msg))
+	}
+	clearPlayerMessages(alice)
+	
+	transcript = append(transcript, "\n>>> Alice gets obsidian dagger and fights lava salamander")
+	alice.HandleCommand(game, "get obsidian dagger")
+	alice.HandleCommand(game, "equip obsidian dagger")
+	alice.HandleCommand(game, "attack lava salamander")
+	messages = getPlayerMessages(alice)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Alice: %s", msg))
+	}
+	clearPlayerMessages(alice)
+	
+	transcript = append(transcript, "\n>>> Alice uses rest command to heal")
+	alice.HandleCommand(game, "rest")
+	messages = getPlayerMessages(alice)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Alice: %s", msg))
+	}
+	clearPlayerMessages(alice)
+	
+	transcript = append(transcript, "\n>>> Bob goes to ice fortress via wizard tower")
+	bob.HandleCommand(game, "down")
+	bob.HandleCommand(game, "west")
+	bob.HandleCommand(game, "down")
+	bob.HandleCommand(game, "up")
+	bob.HandleCommand(game, "up")
+	messages = getPlayerMessages(bob)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Bob: %s", msg))
+	}
+	clearPlayerMessages(bob)
+	
+	transcript = append(transcript, "\n>>> Bob gets frost armor and fights ice monsters")
+	bob.HandleCommand(game, "get frost armor")
+	bob.HandleCommand(game, "unequip steel shield")
+	bob.HandleCommand(game, "equip frost armor")
+	bob.HandleCommand(game, "attack frost yeti")
+	messages = getPlayerMessages(bob)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Bob: %s", msg))
+	}
+	clearPlayerMessages(bob)
+	
+	transcript = append(transcript, "\n>>> Bob explores sky temple and uses rest")
+	bob.HandleCommand(game, "west")
+	bob.HandleCommand(game, "rest")
+	messages = getPlayerMessages(bob)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Bob: %s", msg))
+	}
+	clearPlayerMessages(bob)
+	
+	transcript = append(transcript, "\n>>> Bob gets celestial blade and fights seraph")
+	bob.HandleCommand(game, "get celestial blade")
+	bob.HandleCommand(game, "equip celestial blade")
+	bob.HandleCommand(game, "attack golden seraph")
+	messages = getPlayerMessages(bob)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Bob: %s", msg))
+	}
+	clearPlayerMessages(bob)
+	
+	transcript = append(transcript, "\n>>> Alice goes to temple and uses prayer book for healing")
+	alice.HandleCommand(game, "up")
+	alice.HandleCommand(game, "north")
+	alice.HandleCommand(game, "west")
+	alice.HandleCommand(game, "get prayer book")
+	alice.HandleCommand(game, "use prayer book")
+	messages = getPlayerMessages(alice)
+	for _, msg := range messages {
+		transcript = append(transcript, fmt.Sprintf("Alice: %s", msg))
+	}
+	clearPlayerMessages(alice)
+	
+	transcript = append(transcript, "\n>>> Checking who is online from different locations")
 	alice.HandleCommand(game, "who")
 	messages = getPlayerMessages(alice)
 	for _, msg := range messages {
@@ -312,19 +418,13 @@ func TestGameplayTranscript(t *testing.T) {
 	}
 	clearPlayerMessages(alice)
 	
-	transcript = append(transcript, "\n>>> Alice says something to Bob")
-	alice.HandleCommand(game, "say I found armor in the catacombs! This equipment really helps.")
+	transcript = append(transcript, "\n>>> Alice says something about the expanded world")
+	alice.HandleCommand(game, "say This world is amazing! I found sea monsters, lava creatures, and divine weapons!")
 	messages = getPlayerMessages(alice)
 	for _, msg := range messages {
 		transcript = append(transcript, fmt.Sprintf("Alice: %s", msg))
 	}
-	
-	messages = getPlayerMessages(bob)
-	for _, msg := range messages {
-		transcript = append(transcript, fmt.Sprintf("Bob hears: %s", msg))
-	}
 	clearPlayerMessages(alice)
-	clearPlayerMessages(bob)
 	
 	transcript = append(transcript, "\n>>> Final status check")
 	transcript = append(transcript, fmt.Sprintf("Alice health: %d/%d", alice.health, alice.maxHealth))
