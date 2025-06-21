@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"net"
 	"strings"
 )
@@ -13,11 +14,39 @@ type Player struct {
 	location  *Room
 	scanner   *bufio.Scanner
 	inventory []*Item
+	health    int
+	maxHealth int
+	damage    int
 }
 
 func (p *Player) SendMessage(message string) {
 	if p.conn != nil {
 		fmt.Fprintf(p.conn, "%s\r\n", message)
+	}
+}
+
+func (p *Player) TakeDamage(damage int) bool {
+	p.health -= damage
+	if p.health <= 0 {
+		p.health = 0
+		return true
+	}
+	return false
+}
+
+func (p *Player) GetHealthStatus() string {
+	healthPercent := float64(p.health) / float64(p.maxHealth)
+	
+	if healthPercent > 0.8 {
+		return "You feel great!"
+	} else if healthPercent > 0.6 {
+		return "You have some minor cuts and bruises."
+	} else if healthPercent > 0.4 {
+		return "You are wounded."
+	} else if healthPercent > 0.2 {
+		return "You are badly wounded."
+	} else {
+		return "You are near death!"
 	}
 }
 
@@ -45,6 +74,15 @@ func (p *Player) HandleCommand(game *Game, command string) {
 			p.SendMessage("\nExits:")
 			for direction := range p.location.exits {
 				p.SendMessage(fmt.Sprintf("  %s", direction))
+			}
+		}
+		
+		if len(p.location.monsters) > 0 {
+			p.SendMessage("\nMonsters here:")
+			for _, monster := range p.location.monsters {
+				if monster.alive {
+					p.SendMessage(fmt.Sprintf("  %s", monster.GetStatus()))
+				}
 			}
 		}
 		
@@ -172,6 +210,49 @@ func (p *Player) HandleCommand(game *Game, command string) {
 			p.SendMessage(fmt.Sprintf("  %s (%s)", player.name, player.location.name))
 		}
 		
+	case "attack", "kill", "fight":
+		if len(parts) < 2 {
+			p.SendMessage("Attack what?")
+			return
+		}
+		targetName := strings.ToLower(strings.Join(parts[1:], " "))
+		
+		var target *Monster
+		for _, monster := range p.location.monsters {
+			if strings.ToLower(monster.name) == targetName && monster.alive {
+				target = monster
+				break
+			}
+		}
+		
+		if target == nil {
+			p.SendMessage("There is no such monster here.")
+			return
+		}
+		
+		damage := p.damage + rand.Intn(3) - 1
+		if damage < 1 {
+			damage = 1
+		}
+		
+		isDead := target.TakeDamage(damage)
+		
+		if isDead {
+			p.SendMessage(fmt.Sprintf("You kill the %s!", target.name))
+			p.location.Broadcast(fmt.Sprintf("%s kills the %s!", p.name, target.name), p)
+		} else {
+			p.SendMessage(fmt.Sprintf("You attack the %s for %d damage!", target.name, damage))
+			p.location.Broadcast(fmt.Sprintf("%s attacks the %s!", p.name, target.name), p)
+			
+			if target.aggressive {
+				target.Attack(p)
+			}
+		}
+		
+	case "health", "hp":
+		p.SendMessage(fmt.Sprintf("Health: %d/%d", p.health, p.maxHealth))
+		p.SendMessage(p.GetHealthStatus())
+		
 	case "say":
 		if len(parts) < 2 {
 			p.SendMessage("Say what?")
@@ -188,6 +269,6 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		}
 		
 	default:
-		p.SendMessage("Unknown command. Try: look, go <direction>, get <item>, drop <item>, inventory, examine <item>, who, say, quit")
+		p.SendMessage("Unknown command. Try: look, go <direction>, get <item>, drop <item>, inventory, examine <item>, attack <monster>, health, who, say, quit")
 	}
 }

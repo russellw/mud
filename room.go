@@ -10,6 +10,7 @@ type Room struct {
 	description string
 	players     []*Player
 	items       []*Item
+	monsters    []*Monster
 	exits       map[string]*Room
 }
 

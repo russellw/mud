@@ -31,6 +31,9 @@ func handleConnection(conn net.Conn, game *Game) {
 		name:      name,
 		scanner:   scanner,
 		inventory: make([]*Item, 0),
+		health:    30,
+		maxHealth: 30,
+		damage:    5,
 	}
 	
 	game.AddPlayer(player)
