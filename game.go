@@ -134,6 +134,86 @@ func (g *Game) createWorld() {
 		exits:       make(map[string]*Room),
 	}
 	
+	// New areas - Pirate Cove
+	pirateCove := &Room{
+		name:        "Hidden Pirate Cove",
+		description: "A secluded beach cove with a rotting wooden pier. Seagulls cry overhead and waves crash against the rocky shore.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "cutlass", description: "A curved pirate sword with a brass handguard", itemType: "weapon", damage: 7, defense: 0}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	// Volcanic Caverns
+	volcanicCavern := &Room{
+		name:        "Volcanic Cavern",
+		description: "A steaming cavern deep underground. Lava pools cast an orange glow on the obsidian walls. The air shimmers with heat.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "obsidian dagger", description: "A razor-sharp dagger carved from volcanic glass", itemType: "weapon", damage: 9, defense: 0}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	// Ice Fortress
+	iceFortress := &Room{
+		name:        "Frozen Fortress",
+		description: "An ancient fortress made entirely of ice and snow. Icicles hang like spears from the ceiling. Your breath forms clouds in the frigid air.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "frost armor", description: "Crystalline armor that radiates cold, providing excellent protection", itemType: "armor", damage: 0, defense: 7}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	// Sky Temple
+	skyTemple := &Room{
+		name:        "Sky Temple",
+		description: "A magnificent temple floating high in the clouds. Golden columns support a crystal dome that captures the sunlight.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "celestial blade", description: "A legendary sword that glows with divine light", itemType: "weapon", damage: 12, defense: 0}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	// Cursed Swamp
+	cursedSwamp := &Room{
+		name:        "Cursed Swamp",
+		description: "A fetid swamp where twisted trees emerge from stagnant water. Strange lights flicker in the mist and the air reeks of decay.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "swamp boots", description: "Waterproof boots that protect against poison and disease", itemType: "armor", damage: 0, defense: 4}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	// Crystal Mines
+	crystalMines := &Room{
+		name:        "Crystal Mines",
+		description: "Deep underground tunnels where precious crystals grow from the walls. The gems cast rainbow patterns of light throughout the cavern.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "crystal wand", description: "A wand topped with a multifaceted crystal that pulses with magical energy", itemType: "weapon", damage: 11, defense: 0}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	// Haunted Library
+	hauntedLibrary := &Room{
+		name:        "Haunted Library",
+		description: "A vast library with towering shelves of ancient books. Spectral figures drift between the stacks and whispers echo in the darkness.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "tome of knowledge", description: "An ancient book that increases the reader's wisdom and magical understanding", itemType: "misc", damage: 0, defense: 0}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
+	// Goblin Warren
+	goblinWarren := &Room{
+		name:        "Goblin Warren",
+		description: "A maze of tunnels and chambers carved into the hillside. The walls are covered in crude goblin drawings and the floor is littered with bones.",
+		players:     make([]*Player, 0),
+		items:       []*Item{{name: "goblin mail", description: "Crude but effective armor made from scavenged metal pieces", itemType: "armor", damage: 0, defense: 6}},
+		monsters:    make([]*Monster, 0),
+		exits:       make(map[string]*Room),
+	}
+	
 	// Connect main areas
 	townSquare.exits["north"] = tavern
 	townSquare.exits["south"] = forest
@@ -172,6 +252,34 @@ func (g *Game) createWorld() {
 	
 	armory.exits["down"] = tavern
 	
+	// Connect new areas
+	market.exits["south"] = pirateCove
+	pirateCove.exits["north"] = market
+	pirateCove.exits["down"] = volcanicCavern
+	
+	volcanicCavern.exits["up"] = pirateCove
+	volcanicCavern.exits["north"] = crystalMines
+	
+	crystalMines.exits["south"] = volcanicCavern
+	crystalMines.exits["up"] = goblinWarren
+	
+	goblinWarren.exits["down"] = crystalMines
+	goblinWarren.exits["west"] = cursedSwamp
+	
+	cursedSwamp.exits["east"] = goblinWarren
+	cursedSwamp.exits["north"] = hauntedLibrary
+	
+	hauntedLibrary.exits["south"] = cursedSwamp
+	hauntedLibrary.exits["up"] = skyTemple
+	
+	skyTemple.exits["down"] = hauntedLibrary
+	skyTemple.exits["east"] = iceFortress
+	
+	iceFortress.exits["west"] = skyTemple
+	iceFortress.exits["down"] = wizardTower
+	
+	wizardTower.exits["up"] = iceFortress
+	
 	g.rooms["town_square"] = townSquare
 	g.rooms["tavern"] = tavern
 	g.rooms["forest"] = forest
@@ -184,6 +292,14 @@ func (g *Game) createWorld() {
 	g.rooms["dragon_lair"] = dragonLair
 	g.rooms["cemetery"] = cemetery
 	g.rooms["armory"] = armory
+	g.rooms["pirate_cove"] = pirateCove
+	g.rooms["volcanic_cavern"] = volcanicCavern
+	g.rooms["ice_fortress"] = iceFortress
+	g.rooms["sky_temple"] = skyTemple
+	g.rooms["cursed_swamp"] = cursedSwamp
+	g.rooms["crystal_mines"] = crystalMines
+	g.rooms["haunted_library"] = hauntedLibrary
+	g.rooms["goblin_warren"] = goblinWarren
 	
 	g.spawnMonsters()
 }
@@ -275,6 +391,82 @@ func (g *Game) spawnMonsters() {
 	guard := NewMonster("castle guard", "A heavily armored soldier sworn to protect the castle's treasures", 35, 7, false)
 	guard.location = g.rooms["armory"]
 	g.rooms["armory"].monsters = append(g.rooms["armory"].monsters, guard)
+	
+	// Pirate Cove monsters
+	pirate := NewMonster("bloodthirsty pirate", "A scarred sailor with a wooden leg and a gleaming cutlass", 30, 8, true)
+	pirate.location = g.rooms["pirate_cove"]
+	g.rooms["pirate_cove"].monsters = append(g.rooms["pirate_cove"].monsters, pirate)
+	
+	kraken := NewMonster("sea kraken", "A massive tentacled beast that emerges from the depths to terrorize sailors", 80, 12, true)
+	kraken.location = g.rooms["pirate_cove"]
+	g.rooms["pirate_cove"].monsters = append(g.rooms["pirate_cove"].monsters, kraken)
+	
+	// Volcanic Cavern monsters
+	salamander := NewMonster("lava salamander", "A lizard-like creature with scales that glow like embers", 40, 10, true)
+	salamander.location = g.rooms["volcanic_cavern"]
+	g.rooms["volcanic_cavern"].monsters = append(g.rooms["volcanic_cavern"].monsters, salamander)
+	
+	phoenix := NewMonster("flame phoenix", "A magnificent bird wreathed in eternal fire that rises from the ashes", 60, 14, false)
+	phoenix.location = g.rooms["volcanic_cavern"]
+	g.rooms["volcanic_cavern"].monsters = append(g.rooms["volcanic_cavern"].monsters, phoenix)
+	
+	// Ice Fortress monsters
+	yeti := NewMonster("frost yeti", "A massive white-furred beast with icicles for claws", 50, 11, true)
+	yeti.location = g.rooms["ice_fortress"]
+	g.rooms["ice_fortress"].monsters = append(g.rooms["ice_fortress"].monsters, yeti)
+	
+	iceGolem := NewMonster("ice golem", "A towering construct made of solid ice and ancient magic", 70, 9, false)
+	iceGolem.location = g.rooms["ice_fortress"]
+	g.rooms["ice_fortress"].monsters = append(g.rooms["ice_fortress"].monsters, iceGolem)
+	
+	// Sky Temple monsters
+	seraph := NewMonster("golden seraph", "A six-winged celestial being radiating divine light and power", 90, 16, false)
+	seraph.location = g.rooms["sky_temple"]
+	g.rooms["sky_temple"].monsters = append(g.rooms["sky_temple"].monsters, seraph)
+	
+	stormElemental := NewMonster("storm elemental", "A swirling vortex of wind and lightning with glowing eyes", 45, 13, true)
+	stormElemental.location = g.rooms["sky_temple"]
+	g.rooms["sky_temple"].monsters = append(g.rooms["sky_temple"].monsters, stormElemental)
+	
+	// Cursed Swamp monsters
+	swampTroll := NewMonster("bog troll", "A massive troll covered in moss and slime, reeking of decay", 55, 9, true)
+	swampTroll.location = g.rooms["cursed_swamp"]
+	g.rooms["cursed_swamp"].monsters = append(g.rooms["cursed_swamp"].monsters, swampTroll)
+	
+	willOWisp := NewMonster("will-o'-wisp", "A dancing ball of eerie light that leads travelers astray", 20, 6, false)
+	willOWisp.location = g.rooms["cursed_swamp"]
+	g.rooms["cursed_swamp"].monsters = append(g.rooms["cursed_swamp"].monsters, willOWisp)
+	
+	// Crystal Mines monsters
+	crystalSpider := NewMonster("crystal spider", "A spider with a crystalline carapace that refracts light into deadly beams", 35, 8, true)
+	crystalSpider.location = g.rooms["crystal_mines"]
+	g.rooms["crystal_mines"].monsters = append(g.rooms["crystal_mines"].monsters, crystalSpider)
+	
+	earthElemental := NewMonster("earth elemental", "A hulking creature of living stone and gems", 65, 10, false)
+	earthElemental.location = g.rooms["crystal_mines"]
+	g.rooms["crystal_mines"].monsters = append(g.rooms["crystal_mines"].monsters, earthElemental)
+	
+	// Haunted Library monsters
+	librarian := NewMonster("spectral librarian", "The ghostly keeper of forbidden knowledge, eternally bound to the library", 40, 7, false)
+	librarian.location = g.rooms["haunted_library"]
+	g.rooms["haunted_library"].monsters = append(g.rooms["haunted_library"].monsters, librarian)
+	
+	bookWyrm := NewMonster("ancient book wyrm", "A serpentine dragon that devours knowledge and breathes ink", 75, 11, true)
+	bookWyrm.location = g.rooms["haunted_library"]
+	g.rooms["haunted_library"].monsters = append(g.rooms["haunted_library"].monsters, bookWyrm)
+	
+	// Goblin Warren monsters
+	goblinKing := NewMonster("goblin king", "The cruel ruler of the goblin warren, adorned with stolen treasures", 45, 8, true)
+	goblinKing.location = g.rooms["goblin_warren"]
+	g.rooms["goblin_warren"].monsters = append(g.rooms["goblin_warren"].monsters, goblinKing)
+	
+	goblinShaman := NewMonster("goblin shaman", "A wicked spellcaster who communes with dark spirits", 30, 9, false)
+	goblinShaman.location = g.rooms["goblin_warren"]
+	g.rooms["goblin_warren"].monsters = append(g.rooms["goblin_warren"].monsters, goblinShaman)
+	
+	goblinWarrior := NewMonster("goblin warrior", "A fierce goblin fighter with crude weapons and a vicious temperament", 25, 6, true)
+	goblinWarrior.location = g.rooms["goblin_warren"]
+	g.rooms["goblin_warren"].monsters = append(g.rooms["goblin_warren"].monsters, goblinWarrior)
 }
 
 func (g *Game) gameLoop() {

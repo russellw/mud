@@ -20,18 +20,26 @@ type RoomPosition struct {
 }
 
 var roomPositions = map[string]RoomPosition{
-	"town_square":  {2, 2, 0},
-	"tavern":       {2, 1, 0},
-	"forest":       {2, 3, 0},
-	"market":       {3, 2, 0},
-	"temple":       {1, 2, 0},
-	"armory":       {2, 1, 1},
-	"deep_forest":  {2, 4, 0},
-	"dungeon":      {2, 3, -1},
-	"catacombs":    {1, 2, -1},
-	"wizard_tower": {1, 2, 1},
-	"dragon_lair":  {3, 4, 0},
-	"cemetery":     {1, 4, 0},
+	"town_square":      {2, 2, 0},
+	"tavern":           {2, 1, 0},
+	"forest":           {2, 3, 0},
+	"market":           {3, 2, 0},
+	"temple":           {1, 2, 0},
+	"armory":           {2, 1, 1},
+	"deep_forest":      {2, 4, 0},
+	"dungeon":          {2, 3, -1},
+	"catacombs":        {1, 2, -1},
+	"wizard_tower":     {1, 2, 1},
+	"dragon_lair":      {3, 4, 0},
+	"cemetery":         {1, 4, 0},
+	"pirate_cove":      {3, 3, 0},
+	"volcanic_cavern":  {3, 3, -1},
+	"ice_fortress":     {2, 2, 2},
+	"sky_temple":       {1, 2, 2},
+	"cursed_swamp":     {0, 3, 0},
+	"crystal_mines":    {3, 2, -1},
+	"haunted_library":  {0, 2, 0},
+	"goblin_warren":    {3, 2, 1},
 }
 
 func TestRoomConnectivity(t *testing.T) {
@@ -41,7 +49,9 @@ func TestRoomConnectivity(t *testing.T) {
 	expectedRooms := []string{
 		"town_square", "tavern", "forest", "market", "temple",
 		"dungeon", "deep_forest", "catacombs", "wizard_tower", 
-		"dragon_lair", "cemetery", "armory",
+		"dragon_lair", "cemetery", "armory", "pirate_cove",
+		"volcanic_cavern", "ice_fortress", "sky_temple", "cursed_swamp",
+		"crystal_mines", "haunted_library", "goblin_warren",
 	}
 	
 	for _, roomKey := range expectedRooms {
@@ -66,6 +76,15 @@ func TestRoomConnectivity(t *testing.T) {
 		{"deep_forest", "cemetery", "west"},
 		{"deep_forest", "dragon_lair", "east"},
 		{"dungeon", "catacombs", "north"},
+		{"market", "pirate_cove", "south"},
+		{"pirate_cove", "volcanic_cavern", "down"},
+		{"volcanic_cavern", "crystal_mines", "north"},
+		{"crystal_mines", "goblin_warren", "up"},
+		{"goblin_warren", "cursed_swamp", "west"},
+		{"cursed_swamp", "haunted_library", "north"},
+		{"haunted_library", "sky_temple", "up"},
+		{"sky_temple", "ice_fortress", "east"},
+		{"ice_fortress", "wizard_tower", "down"},
 	}
 	
 	for _, test := range connectivityTests {
@@ -133,6 +152,14 @@ func TestRoomContents(t *testing.T) {
 		{"dragon_lair", "dragon scale", "armor", []string{"ancient dragon"}},
 		{"cemetery", "silver cross", "weapon", []string{"wandering spirit", "vengeful wraith"}},
 		{"armory", "steel shield", "armor", []string{"castle guard"}},
+		{"pirate_cove", "cutlass", "weapon", []string{"bloodthirsty pirate", "sea kraken"}},
+		{"volcanic_cavern", "obsidian dagger", "weapon", []string{"lava salamander", "flame phoenix"}},
+		{"ice_fortress", "frost armor", "armor", []string{"frost yeti", "ice golem"}},
+		{"sky_temple", "celestial blade", "weapon", []string{"golden seraph", "storm elemental"}},
+		{"cursed_swamp", "swamp boots", "armor", []string{"bog troll", "will-o'-wisp"}},
+		{"crystal_mines", "crystal wand", "weapon", []string{"crystal spider", "earth elemental"}},
+		{"haunted_library", "tome of knowledge", "misc", []string{"spectral librarian", "ancient book wyrm"}},
+		{"goblin_warren", "goblin mail", "armor", []string{"goblin king", "goblin shaman", "goblin warrior"}},
 	}
 	
 	for _, test := range contentTests {
@@ -196,7 +223,7 @@ func TestGenerateMapPNG(t *testing.T) {
 		margin   = 50
 		mapWidth = 5
 		mapHeight = 5
-		levels   = 3 // -1, 0, 1
+		levels   = 4 // -1, 0, 1, 2
 	)
 	
 	imgWidth := mapWidth*cellSize + 2*margin + 200 // extra space for legend
@@ -224,7 +251,7 @@ func TestGenerateMapPNG(t *testing.T) {
 	}
 	
 	// Draw rooms for each level
-	for level := -1; level <= 1; level++ {
+	for level := -1; level <= 2; level++ {
 		levelOffset := (level + 1) * (mapHeight * cellSize + 30)
 		
 		// Draw level label

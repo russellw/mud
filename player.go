@@ -196,7 +196,13 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		
 		for _, item := range p.location.items {
 			if strings.ToLower(item.name) == itemName {
-				p.SendMessage(fmt.Sprintf("%s: %s", item.name, item.description))
+				description := fmt.Sprintf("%s: %s", item.name, item.description)
+				if item.itemType == "weapon" && item.damage > 0 {
+					description += fmt.Sprintf(" (Damage: +%d)", item.damage)
+				} else if item.itemType == "armor" && item.defense > 0 {
+					description += fmt.Sprintf(" (Defense: +%d)", item.defense)
+				}
+				p.SendMessage(description)
 				return
 			}
 		}
@@ -304,6 +310,61 @@ func (p *Player) HandleCommand(game *Game, command string) {
 			p.SendMessage("  Armor: none")
 		}
 		
+	case "use":
+		if len(parts) < 2 {
+			p.SendMessage("Use what?")
+			return
+		}
+		itemName := strings.ToLower(strings.Join(parts[1:], " "))
+		
+		for i, item := range p.inventory {
+			if strings.ToLower(item.name) == itemName {
+				switch item.name {
+				case "tome of knowledge":
+					p.inventory = append(p.inventory[:i], p.inventory[i+1:]...)
+					p.maxHealth += 10
+					p.health += 10
+					p.damage += 2
+					p.SendMessage("You study the ancient tome and feel your mind expand with knowledge!")
+					p.SendMessage(fmt.Sprintf("Your maximum health increases to %d and your base damage increases by 2!", p.maxHealth))
+					p.location.Broadcast(fmt.Sprintf("%s glows with newfound wisdom!", p.name), p)
+					return
+				case "prayer book":
+					p.health = p.maxHealth
+					p.SendMessage("You recite sacred prayers and feel divine healing wash over you!")
+					p.SendMessage("You are fully healed!")
+					p.location.Broadcast(fmt.Sprintf("%s radiates with holy light!", p.name), p)
+					return
+				case "shiny coin":
+					p.SendMessage("You flip the coin and make a wish, but nothing happens. It's just a coin.")
+					return
+				case "rusty key":
+					p.SendMessage("The key doesn't seem to fit any locks here.")
+					return
+				default:
+					p.SendMessage("You can't use that item.")
+					return
+				}
+			}
+		}
+		p.SendMessage("You don't have that item.")
+		
+	case "rest":
+		healAmount := p.maxHealth / 4
+		if healAmount < 5 {
+			healAmount = 5
+		}
+		if p.health >= p.maxHealth {
+			p.SendMessage("You are already at full health.")
+			return
+		}
+		p.health += healAmount
+		if p.health > p.maxHealth {
+			p.health = p.maxHealth
+		}
+		p.SendMessage(fmt.Sprintf("You rest and recover %d health points.", healAmount))
+		p.location.Broadcast(fmt.Sprintf("%s sits down to rest.", p.name), p)
+		
 	case "say":
 		if len(parts) < 2 {
 			p.SendMessage("Say what?")
@@ -320,6 +381,6 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		}
 		
 	default:
-		p.SendMessage("Unknown command. Try: look, go <direction>, get <item>, drop <item>, inventory, examine <item>, equip <item>, equipment, attack <monster>, health, who, say, quit")
+		p.SendMessage("Unknown command. Try: look, go <direction>, get <item>, drop <item>, inventory, examine <item>, equip <item>, equipment, attack <monster>, health, who, use <item>, rest, say, quit")
 	}
 }
