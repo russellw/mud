@@ -16,6 +16,7 @@ mud
 
 # Test output files
 gameplay_transcript.txt
+mud_map.png
 
 # Code coverage profiles and other test artifacts
 *.out
