@@ -27,9 +27,10 @@ func handleConnection(conn net.Conn, game *Game) {
 	}
 	
 	player := &Player{
-		conn:    conn,
-		name:    name,
-		scanner: scanner,
+		conn:      conn,
+		name:      name,
+		scanner:   scanner,
+		inventory: make([]*Item, 0),
 	}
 	
 	game.AddPlayer(player)
