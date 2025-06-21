@@ -1,17 +1,26 @@
 package main
 
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
+
 type Game struct {
 	rooms   map[string]*Room
 	players []*Player
+	running bool
 }
 
 func NewGame() *Game {
 	game := &Game{
 		rooms:   make(map[string]*Room),
 		players: make([]*Player, 0),
+		running: true,
 	}
 	
 	game.createWorld()
+	go game.gameLoop()
 	
 	return game
 }
@@ -115,11 +124,115 @@ func (g *Game) spawnMonsters() {
 	wolf.location = g.rooms["forest"]
 	g.rooms["forest"].monsters = append(g.rooms["forest"].monsters, wolf)
 	
-	bandit := NewMonster("bandit", "A shifty-looking human in leather armor, clutching a rusty dagger", 20, 5, false)
+	bandit := NewMonster("bandit", "A shifty-looking human in leather armor, clutching a rusty dagger", 20, 5, true)
 	bandit.location = g.rooms["market"]
 	g.rooms["market"].monsters = append(g.rooms["market"].monsters, bandit)
 	
-	cultist := NewMonster("shadowy cultist", "A robed figure with glowing red eyes chanting in an unknown language", 18, 4, false)
+	cultist := NewMonster("shadowy cultist", "A robed figure with glowing red eyes chanting in an unknown language", 18, 4, true)
 	cultist.location = g.rooms["temple"]
 	g.rooms["temple"].monsters = append(g.rooms["temple"].monsters, cultist)
+}
+
+func (g *Game) gameLoop() {
+	ticker := time.NewTicker(3 * time.Second)
+	defer ticker.Stop()
+	
+	for g.running {
+		select {
+		case <-ticker.C:
+			g.processMonsterAI()
+		}
+	}
+}
+
+func (g *Game) processMonsterAI() {
+	for _, room := range g.rooms {
+		for _, monster := range room.monsters {
+			if !monster.alive {
+				continue
+			}
+			
+			if monster.aggressive && len(room.players) > 0 {
+				target := room.players[rand.Intn(len(room.players))]
+				g.MonsterAttackPlayer(monster, target)
+			} else if !monster.aggressive && len(room.players) > 0 {
+				if rand.Float32() < 0.3 {
+					target := room.players[rand.Intn(len(room.players))]
+					g.MonsterAttackPlayer(monster, target)
+				}
+			}
+		}
+	}
+}
+
+func (g *Game) PlayerAttackMonster(player *Player, monsterName string) {
+	var target *Monster
+	for _, monster := range player.location.monsters {
+		if monster.name == monsterName && monster.alive {
+			target = monster
+			break
+		}
+	}
+	
+	if target == nil {
+		player.SendMessage("There is no such monster here.")
+		return
+	}
+	
+	damage := player.damage + rand.Intn(3) - 1
+	if damage < 1 {
+		damage = 1
+	}
+	
+	isDead := target.TakeDamage(damage)
+	
+	if isDead {
+		player.SendMessage(fmt.Sprintf("You kill the %s!", target.name))
+		player.location.Broadcast(fmt.Sprintf("%s kills the %s!", player.name, target.name), player)
+	} else {
+		player.SendMessage(fmt.Sprintf("You attack the %s for %d damage!", target.name, damage))
+		player.location.Broadcast(fmt.Sprintf("%s attacks the %s!", player.name, target.name), player)
+	}
+}
+
+func (g *Game) MonsterAttackPlayer(monster *Monster, player *Player) {
+	if !monster.alive {
+		return
+	}
+	
+	damage := monster.damage + rand.Intn(5) - 2
+	if damage < 1 {
+		damage = 1
+	}
+	
+	isDead := player.TakeDamage(damage)
+	
+	if isDead {
+		player.SendMessage("You have been killed!")
+		player.location.Broadcast(fmt.Sprintf("%s has been killed by %s!", player.name, monster.name), player)
+		g.respawnPlayer(player)
+	} else {
+		player.SendMessage(fmt.Sprintf("The %s attacks you for %d damage!", monster.name, damage))
+		player.location.Broadcast(fmt.Sprintf("%s attacks %s!", monster.name, player.name), player)
+	}
+}
+
+func (g *Game) respawnPlayer(player *Player) {
+	player.health = player.maxHealth
+	
+	if player.location != nil {
+		for i, p := range player.location.players {
+			if p == player {
+				player.location.players = append(player.location.players[:i], player.location.players[i+1:]...)
+				break
+			}
+		}
+	}
+	
+	townSquare := g.rooms["town_square"]
+	player.location = townSquare
+	townSquare.players = append(townSquare.players, player)
+	
+	player.SendMessage("You respawn in the town square, fully healed.")
+	player.location.Broadcast(fmt.Sprintf("%s respawns.", player.name), player)
 }

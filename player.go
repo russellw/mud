@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math/rand"
 	"net"
 	"strings"
 )
@@ -216,38 +215,7 @@ func (p *Player) HandleCommand(game *Game, command string) {
 			return
 		}
 		targetName := strings.ToLower(strings.Join(parts[1:], " "))
-		
-		var target *Monster
-		for _, monster := range p.location.monsters {
-			if strings.ToLower(monster.name) == targetName && monster.alive {
-				target = monster
-				break
-			}
-		}
-		
-		if target == nil {
-			p.SendMessage("There is no such monster here.")
-			return
-		}
-		
-		damage := p.damage + rand.Intn(3) - 1
-		if damage < 1 {
-			damage = 1
-		}
-		
-		isDead := target.TakeDamage(damage)
-		
-		if isDead {
-			p.SendMessage(fmt.Sprintf("You kill the %s!", target.name))
-			p.location.Broadcast(fmt.Sprintf("%s kills the %s!", p.name, target.name), p)
-		} else {
-			p.SendMessage(fmt.Sprintf("You attack the %s for %d damage!", target.name, damage))
-			p.location.Broadcast(fmt.Sprintf("%s attacks the %s!", p.name, target.name), p)
-			
-			if target.aggressive {
-				target.Attack(p)
-			}
-		}
+		game.PlayerAttackMonster(p, targetName)
 		
 	case "health", "hp":
 		p.SendMessage(fmt.Sprintf("Health: %d/%d", p.health, p.maxHealth))

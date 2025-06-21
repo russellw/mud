@@ -1,10 +1,5 @@
 package main
 
-import (
-	"fmt"
-	"math/rand"
-)
-
 type Monster struct {
 	name        string
 	description string
@@ -38,26 +33,6 @@ func (m *Monster) TakeDamage(damage int) bool {
 	return false
 }
 
-func (m *Monster) Attack(target *Player) {
-	if !m.alive {
-		return
-	}
-	
-	damage := m.damage + rand.Intn(5) - 2
-	if damage < 1 {
-		damage = 1
-	}
-	
-	isDead := target.TakeDamage(damage)
-	
-	if m.location != nil {
-		if isDead {
-			m.location.Broadcast(fmt.Sprintf("%s kills %s!", m.name, target.name), nil)
-		} else {
-			m.location.Broadcast(fmt.Sprintf("%s attacks %s for %d damage!", m.name, target.name, damage), nil)
-		}
-	}
-}
 
 func (m *Monster) Respawn() {
 	m.health = m.maxHealth
