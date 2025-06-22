@@ -28,6 +28,13 @@ A fully-featured text-based MMORPG (Multi-User Dungeon) server written in Go, fe
 - **Equipment**: `equip <item>`, `unequip <item>`, `equipment`
 - **Special**: `use <item>`, `rest`, `health`, `who`, `say <message>`
 
+### 🎨 Visual Experience
+- **ANSI color support** for enhanced visual gameplay
+- **Context-aware coloring**: rooms, players, monsters, items, exits
+- **Dynamic health indicators** with color-coded status
+- **Combat feedback** with colored damage and healing
+- **Equipment highlighting** for weapons and armor stats
+
 ### 🏗️ Technical Features
 - **Telnet protocol** for authentic MUD experience (port 4000)
 - **Concurrent connection handling** with goroutines
@@ -57,6 +64,30 @@ The game features a complex 4-level world structure:
 
 Navigate between levels using `up` and `down` commands at connected rooms.
 
+## Color Support
+
+The MUD features comprehensive ANSI color support for enhanced visual gameplay:
+
+### Color Scheme
+- **Room Names**: Bold yellow headers
+- **Player Names**: Bright blue 
+- **Monster Names**: Bright red with health-based status colors
+- **Items**: Bright green
+- **Exits**: Cyan directional indicators
+- **Equipment**: Bright yellow for weapons/armor
+- **Combat**: Red damage numbers, green healing
+- **Magic**: Magenta for spells and enchantments
+- **Errors**: Bright red warnings
+- **Success**: Bright green confirmations
+
+### Terminal Compatibility
+Works with any telnet client supporting ANSI escape codes:
+- **Linux/Mac**: Built-in terminal, iTerm2, GNOME Terminal
+- **Windows**: Windows Terminal, PuTTY, WSL
+- **Mobile**: Termux (Android), Terminal (iOS)
+
+Colors gracefully degrade in terminals without ANSI support.
+
 ## Development
 
 ### Testing
@@ -77,6 +108,7 @@ go test -run TestGenerateMapPNG
 - `player.go` - Player commands and actions
 - `room.go` - Room structures and broadcasting
 - `monster.go` - Monster AI and behavior
+- `colors.go` - ANSI color constants and formatting functions
 - `*_test.go` - Comprehensive test suite
 
 ## Game Statistics
