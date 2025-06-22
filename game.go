@@ -511,7 +511,7 @@ func (g *Game) PlayerAttackMonster(player *Player, monsterName string) {
 	}
 	
 	if target == nil {
-		player.SendMessage("There is no such monster here.")
+		player.SendMessage(ColorError("There is no such monster here."))
 		return
 	}
 	
@@ -527,11 +527,11 @@ func (g *Game) PlayerAttackMonster(player *Player, monsterName string) {
 	isDead := target.TakeDamage(damage)
 	
 	if isDead {
-		player.SendMessage(fmt.Sprintf("You kill the %s!", target.name))
-		player.location.Broadcast(fmt.Sprintf("%s kills the %s!", player.name, target.name), player)
+		player.SendMessage(fmt.Sprintf("%sYou kill the %s!%s", ColorSuccess(""), ColorMonster(target.name), ColorReset))
+		player.location.Broadcast(fmt.Sprintf("%s kills the %s!", ColorName(player.name), ColorMonster(target.name)), player)
 	} else {
-		player.SendMessage(fmt.Sprintf("You attack the %s for %d damage!", target.name, damage))
-		player.location.Broadcast(fmt.Sprintf("%s attacks the %s!", player.name, target.name), player)
+		player.SendMessage(fmt.Sprintf("You attack the %s for %s%d damage%s!", ColorMonster(target.name), ColorDamage(""), damage, ColorReset))
+		player.location.Broadcast(fmt.Sprintf("%s attacks the %s!", ColorName(player.name), ColorMonster(target.name)), player)
 	}
 }
 
@@ -558,12 +558,12 @@ func (g *Game) MonsterAttackPlayer(monster *Monster, player *Player) {
 	isDead := player.TakeDamage(damage)
 	
 	if isDead {
-		player.SendMessage("You have been killed!")
-		player.location.Broadcast(fmt.Sprintf("%s has been killed by %s!", player.name, monster.name), player)
+		player.SendMessage(ColorDamage("You have been killed!"))
+		player.location.Broadcast(fmt.Sprintf("%s has been killed by %s!", ColorName(player.name), ColorMonster(monster.name)), player)
 		g.respawnPlayer(player)
 	} else {
-		player.SendMessage(fmt.Sprintf("The %s attacks you for %d damage!", monster.name, damage))
-		player.location.Broadcast(fmt.Sprintf("%s attacks %s!", monster.name, player.name), player)
+		player.SendMessage(fmt.Sprintf("The %s attacks you for %s%d damage%s!", ColorMonster(monster.name), ColorDamage(""), damage, ColorReset))
+		player.location.Broadcast(fmt.Sprintf("%s attacks %s!", ColorMonster(monster.name), ColorName(player.name)), player)
 	}
 }
 
@@ -583,6 +583,6 @@ func (g *Game) respawnPlayer(player *Player) {
 	player.location = townSquare
 	townSquare.players = append(townSquare.players, player)
 	
-	player.SendMessage("You respawn in the town square, fully healed.")
-	player.location.Broadcast(fmt.Sprintf("%s respawns.", player.name), player)
+	player.SendMessage(ColorHealing("You respawn in the town square, fully healed."))
+	player.location.Broadcast(fmt.Sprintf("%s respawns.", ColorName(player.name)), player)
 }

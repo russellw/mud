@@ -11,8 +11,8 @@ import (
 func handleConnection(conn net.Conn, game *Game) {
 	defer conn.Close()
 	
-	fmt.Fprintf(conn, "Welcome to the MUD!\r\n")
-	fmt.Fprintf(conn, "What is your name? ")
+	fmt.Fprintf(conn, "%sWelcome to the MUD!%s\r\n", ColorBold+ColorBrightGreen, ColorReset)
+	fmt.Fprintf(conn, "%sWhat is your name?%s ", ColorBrightCyan, ColorReset)
 	
 	scanner := bufio.NewScanner(conn)
 	
@@ -22,7 +22,7 @@ func handleConnection(conn net.Conn, game *Game) {
 	
 	name := strings.TrimSpace(scanner.Text())
 	if name == "" {
-		fmt.Fprintf(conn, "Invalid name. Goodbye!\r\n")
+		fmt.Fprintf(conn, "%sInvalid name. Goodbye!%s\r\n", ColorError(""), ColorReset)
 		return
 	}
 	
@@ -39,17 +39,17 @@ func handleConnection(conn net.Conn, game *Game) {
 	game.AddPlayer(player)
 	defer game.RemovePlayer(player)
 	
-	player.SendMessage(fmt.Sprintf("Hello, %s!", name))
+	player.SendMessage(fmt.Sprintf("%sHello, %s!%s", ColorBrightGreen, ColorName(name), ColorReset))
 	player.HandleCommand(game, "look")
 	
-	player.location.Broadcast(fmt.Sprintf("%s has entered the game.", name), player)
+	player.location.Broadcast(fmt.Sprintf("%s has entered the game.", ColorName(name)), player)
 	
 	for scanner.Scan() {
 		command := scanner.Text()
 		player.HandleCommand(game, command)
 	}
 	
-	player.location.Broadcast(fmt.Sprintf("%s has left the game.", name), player)
+	player.location.Broadcast(fmt.Sprintf("%s has left the game.", ColorName(name)), player)
 }
 
 func main() {

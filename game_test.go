@@ -173,7 +173,7 @@ func TestMultiplePlayersInRoom(t *testing.T) {
 func TestWorldCreation(t *testing.T) {
 	game := NewGame()
 	
-	expectedRooms := []string{"town_square", "tavern", "forest", "market", "temple", "dungeon", "deep_forest", "catacombs", "wizard_tower", "dragon_lair", "cemetery", "armory"}
+	expectedRooms := []string{"town_square", "tavern", "forest", "market", "temple", "dungeon", "deep_forest", "catacombs", "wizard_tower", "dragon_lair", "cemetery", "armory", "pirate_cove", "volcanic_cavern", "ice_fortress", "sky_temple", "cursed_swamp", "crystal_mines", "haunted_library", "goblin_warren"}
 	
 	if len(game.rooms) != len(expectedRooms) {
 		t.Errorf("Expected %d rooms, got %d", len(expectedRooms), len(game.rooms))

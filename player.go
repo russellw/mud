@@ -61,37 +61,37 @@ func (p *Player) HandleCommand(game *Game, command string) {
 	
 	switch cmd {
 	case "look", "l":
-		p.SendMessage(fmt.Sprintf("=== %s ===", p.location.name))
-		p.SendMessage(p.location.description)
+		p.SendMessage(fmt.Sprintf("=== %s ===", ColorRoomName(p.location.name)))
+		p.SendMessage(ColorDescription(p.location.description))
 		
 		if len(p.location.items) > 0 {
-			p.SendMessage("\nItems here:")
+			p.SendMessage(fmt.Sprintf("\n%sItems here:%s", ColorBold, ColorReset))
 			for _, item := range p.location.items {
-				p.SendMessage(fmt.Sprintf("  %s", item.name))
+				p.SendMessage(fmt.Sprintf("  %s", ColorItem(item.name)))
 			}
 		}
 		
 		if len(p.location.exits) > 0 {
-			p.SendMessage("\nExits:")
+			p.SendMessage(fmt.Sprintf("\n%sExits:%s", ColorBold, ColorReset))
 			for direction := range p.location.exits {
-				p.SendMessage(fmt.Sprintf("  %s", direction))
+				p.SendMessage(fmt.Sprintf("  %s", ColorExit(direction)))
 			}
 		}
 		
 		if len(p.location.monsters) > 0 {
-			p.SendMessage("\nMonsters here:")
+			p.SendMessage(fmt.Sprintf("\n%sMonsters here:%s", ColorBold+ColorRed, ColorReset))
 			for _, monster := range p.location.monsters {
 				if monster.alive {
-					p.SendMessage(fmt.Sprintf("  %s", monster.GetStatus()))
+					p.SendMessage(fmt.Sprintf("  %s", ColorMonster(monster.GetStatus())))
 				}
 			}
 		}
 		
 		if len(p.location.players) > 1 {
-			p.SendMessage("\nOther players here:")
+			p.SendMessage(fmt.Sprintf("\n%sOther players here:%s", ColorBold+ColorBlue, ColorReset))
 			for _, player := range p.location.players {
 				if player != p {
-					p.SendMessage(fmt.Sprintf("  %s", player.name))
+					p.SendMessage(fmt.Sprintf("  %s", ColorPlayer(player.name)))
 				}
 			}
 		}
@@ -122,11 +122,11 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		
 		nextRoom, exists := p.location.exits[direction]
 		if !exists {
-			p.SendMessage("You can't go that way.")
+			p.SendMessage(ColorError("You can't go that way."))
 			return
 		}
 		
-		p.location.Broadcast(fmt.Sprintf("%s leaves %s.", p.name, direction), p)
+		p.location.Broadcast(fmt.Sprintf("%s leaves %s.", ColorName(p.name), ColorExit(direction)), p)
 		
 		for i, player := range p.location.players {
 			if player == p {
@@ -138,12 +138,12 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		p.location = nextRoom
 		nextRoom.players = append(nextRoom.players, p)
 		
-		nextRoom.Broadcast(fmt.Sprintf("%s arrives.", p.name), p)
+		nextRoom.Broadcast(fmt.Sprintf("%s arrives.", ColorName(p.name)), p)
 		p.HandleCommand(game, "look")
 		
 	case "get", "take":
 		if len(parts) < 2 {
-			p.SendMessage("Get what?")
+			p.SendMessage(ColorWarning("Get what?"))
 			return
 		}
 		itemName := strings.ToLower(strings.Join(parts[1:], " "))
@@ -152,16 +152,16 @@ func (p *Player) HandleCommand(game *Game, command string) {
 			if strings.ToLower(item.name) == itemName {
 				p.location.items = append(p.location.items[:i], p.location.items[i+1:]...)
 				p.inventory = append(p.inventory, item)
-				p.SendMessage(fmt.Sprintf("You take the %s.", item.name))
-				p.location.Broadcast(fmt.Sprintf("%s takes the %s.", p.name, item.name), p)
+				p.SendMessage(fmt.Sprintf("You take the %s.", ColorItem(item.name)))
+				p.location.Broadcast(fmt.Sprintf("%s takes the %s.", ColorName(p.name), ColorItem(item.name)), p)
 				return
 			}
 		}
-		p.SendMessage("That item is not here.")
+		p.SendMessage(ColorError("That item is not here."))
 		
 	case "drop":
 		if len(parts) < 2 {
-			p.SendMessage("Drop what?")
+			p.SendMessage(ColorWarning("Drop what?"))
 			return
 		}
 		itemName := strings.ToLower(strings.Join(parts[1:], " "))
@@ -170,37 +170,37 @@ func (p *Player) HandleCommand(game *Game, command string) {
 			if strings.ToLower(item.name) == itemName {
 				p.inventory = append(p.inventory[:i], p.inventory[i+1:]...)
 				p.location.items = append(p.location.items, item)
-				p.SendMessage(fmt.Sprintf("You drop the %s.", item.name))
-				p.location.Broadcast(fmt.Sprintf("%s drops the %s.", p.name, item.name), p)
+				p.SendMessage(fmt.Sprintf("You drop the %s.", ColorItem(item.name)))
+				p.location.Broadcast(fmt.Sprintf("%s drops the %s.", ColorName(p.name), ColorItem(item.name)), p)
 				return
 			}
 		}
-		p.SendMessage("You don't have that item.")
+		p.SendMessage(ColorError("You don't have that item."))
 		
 	case "inventory", "inv", "i":
 		if len(p.inventory) == 0 {
-			p.SendMessage("You are not carrying anything.")
+			p.SendMessage(ColorInfo("You are not carrying anything."))
 		} else {
-			p.SendMessage("You are carrying:")
+			p.SendMessage(fmt.Sprintf("%sYou are carrying:%s", ColorBold, ColorReset))
 			for _, item := range p.inventory {
-				p.SendMessage(fmt.Sprintf("  %s", item.name))
+				p.SendMessage(fmt.Sprintf("  %s", ColorItem(item.name)))
 			}
 		}
 		
 	case "examine", "ex":
 		if len(parts) < 2 {
-			p.SendMessage("Examine what?")
+			p.SendMessage(ColorWarning("Examine what?"))
 			return
 		}
 		itemName := strings.ToLower(strings.Join(parts[1:], " "))
 		
 		for _, item := range p.location.items {
 			if strings.ToLower(item.name) == itemName {
-				description := fmt.Sprintf("%s: %s", item.name, item.description)
+				description := fmt.Sprintf("%s: %s", ColorItem(item.name), item.description)
 				if item.itemType == "weapon" && item.damage > 0 {
-					description += fmt.Sprintf(" (Damage: +%d)", item.damage)
+					description += fmt.Sprintf(" %s(Damage: +%d)%s", ColorDamage(""), item.damage, ColorReset)
 				} else if item.itemType == "armor" && item.defense > 0 {
-					description += fmt.Sprintf(" (Defense: +%d)", item.defense)
+					description += fmt.Sprintf(" %s(Defense: +%d)%s", ColorEquipment(""), item.defense, ColorReset)
 				}
 				p.SendMessage(description)
 				return
@@ -209,33 +209,37 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		
 		for _, item := range p.inventory {
 			if strings.ToLower(item.name) == itemName {
-				p.SendMessage(fmt.Sprintf("%s: %s", item.name, item.description))
+				p.SendMessage(fmt.Sprintf("%s: %s", ColorItem(item.name), item.description))
 				return
 			}
 		}
-		p.SendMessage("You don't see that here.")
+		p.SendMessage(ColorError("You don't see that here."))
 		
 	case "who":
-		p.SendMessage("Players online:")
+		p.SendMessage(fmt.Sprintf("%sPlayers online:%s", ColorBold, ColorReset))
 		for _, player := range game.players {
-			p.SendMessage(fmt.Sprintf("  %s (%s)", player.name, player.location.name))
+			p.SendMessage(fmt.Sprintf("  %s (%s)", ColorPlayer(player.name), ColorRoomName(player.location.name)))
 		}
 		
 	case "attack", "kill", "fight":
 		if len(parts) < 2 {
-			p.SendMessage("Attack what?")
+			p.SendMessage(ColorWarning("Attack what?"))
 			return
 		}
 		targetName := strings.ToLower(strings.Join(parts[1:], " "))
 		game.PlayerAttackMonster(p, targetName)
 		
 	case "health", "hp":
-		p.SendMessage(fmt.Sprintf("Health: %d/%d", p.health, p.maxHealth))
+		healthColor := ColorHealing("")
+		if p.health < p.maxHealth/2 {
+			healthColor = ColorDamage("")
+		}
+		p.SendMessage(fmt.Sprintf("%sHealth: %d/%d%s", healthColor, p.health, p.maxHealth, ColorReset))
 		p.SendMessage(p.GetHealthStatus())
 		
 	case "equip", "wield", "wear":
 		if len(parts) < 2 {
-			p.SendMessage("Equip what?")
+			p.SendMessage(ColorWarning("Equip what?"))
 			return
 		}
 		itemName := strings.ToLower(strings.Join(parts[1:], " "))
@@ -251,28 +255,28 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		}
 		
 		if item == nil {
-			p.SendMessage("You don't have that item.")
+			p.SendMessage(ColorError("You don't have that item."))
 			return
 		}
 		
 		if item.itemType == "weapon" {
 			if p.weapon != nil {
-				p.SendMessage(fmt.Sprintf("You unequip %s and equip %s.", p.weapon.name, item.name))
+				p.SendMessage(fmt.Sprintf("You unequip %s and equip %s.", ColorEquipment(p.weapon.name), ColorEquipment(item.name)))
 				p.inventory = append(p.inventory, p.weapon)
 			} else {
-				p.SendMessage(fmt.Sprintf("You equip %s.", item.name))
+				p.SendMessage(fmt.Sprintf("You equip %s.", ColorEquipment(item.name)))
 			}
 			p.weapon = item
 		} else if item.itemType == "armor" {
 			if p.armor != nil {
-				p.SendMessage(fmt.Sprintf("You remove %s and wear %s.", p.armor.name, item.name))
+				p.SendMessage(fmt.Sprintf("You remove %s and wear %s.", ColorEquipment(p.armor.name), ColorEquipment(item.name)))
 				p.inventory = append(p.inventory, p.armor)
 			} else {
-				p.SendMessage(fmt.Sprintf("You wear %s.", item.name))
+				p.SendMessage(fmt.Sprintf("You wear %s.", ColorEquipment(item.name)))
 			}
 			p.armor = item
 		} else {
-			p.SendMessage("You can't equip that item.")
+			p.SendMessage(ColorError("You can't equip that item."))
 			return
 		}
 		
@@ -280,39 +284,39 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		
 	case "unequip", "remove":
 		if len(parts) < 2 {
-			p.SendMessage("Remove what?")
+			p.SendMessage(ColorWarning("Remove what?"))
 			return
 		}
 		itemName := strings.ToLower(strings.Join(parts[1:], " "))
 		
 		if p.weapon != nil && strings.ToLower(p.weapon.name) == itemName {
-			p.SendMessage(fmt.Sprintf("You unequip %s.", p.weapon.name))
+			p.SendMessage(fmt.Sprintf("You unequip %s.", ColorEquipment(p.weapon.name)))
 			p.inventory = append(p.inventory, p.weapon)
 			p.weapon = nil
 		} else if p.armor != nil && strings.ToLower(p.armor.name) == itemName {
-			p.SendMessage(fmt.Sprintf("You remove %s.", p.armor.name))
+			p.SendMessage(fmt.Sprintf("You remove %s.", ColorEquipment(p.armor.name)))
 			p.inventory = append(p.inventory, p.armor)
 			p.armor = nil
 		} else {
-			p.SendMessage("You don't have that equipped.")
+			p.SendMessage(ColorError("You don't have that equipped."))
 		}
 		
 	case "equipment", "eq":
-		p.SendMessage("Equipment:")
+		p.SendMessage(fmt.Sprintf("%sEquipment:%s", ColorBold, ColorReset))
 		if p.weapon != nil {
-			p.SendMessage(fmt.Sprintf("  Weapon: %s (+%d damage)", p.weapon.name, p.weapon.damage))
+			p.SendMessage(fmt.Sprintf("  Weapon: %s %s(+%d damage)%s", ColorEquipment(p.weapon.name), ColorDamage(""), p.weapon.damage, ColorReset))
 		} else {
 			p.SendMessage("  Weapon: none")
 		}
 		if p.armor != nil {
-			p.SendMessage(fmt.Sprintf("  Armor: %s (+%d defense)", p.armor.name, p.armor.defense))
+			p.SendMessage(fmt.Sprintf("  Armor: %s %s(+%d defense)%s", ColorEquipment(p.armor.name), ColorEquipment(""), p.armor.defense, ColorReset))
 		} else {
 			p.SendMessage("  Armor: none")
 		}
 		
 	case "use":
 		if len(parts) < 2 {
-			p.SendMessage("Use what?")
+			p.SendMessage(ColorWarning("Use what?"))
 			return
 		}
 		itemName := strings.ToLower(strings.Join(parts[1:], " "))
@@ -325,15 +329,15 @@ func (p *Player) HandleCommand(game *Game, command string) {
 					p.maxHealth += 10
 					p.health += 10
 					p.damage += 2
-					p.SendMessage("You study the ancient tome and feel your mind expand with knowledge!")
-					p.SendMessage(fmt.Sprintf("Your maximum health increases to %d and your base damage increases by 2!", p.maxHealth))
-					p.location.Broadcast(fmt.Sprintf("%s glows with newfound wisdom!", p.name), p)
+					p.SendMessage(ColorMagic("You study the ancient tome and feel your mind expand with knowledge!"))
+					p.SendMessage(fmt.Sprintf("%sYour maximum health increases to %d and your base damage increases by 2!%s", ColorSuccess(""), p.maxHealth, ColorReset))
+					p.location.Broadcast(fmt.Sprintf("%s glows with newfound wisdom!", ColorName(p.name)), p)
 					return
 				case "prayer book":
 					p.health = p.maxHealth
-					p.SendMessage("You recite sacred prayers and feel divine healing wash over you!")
-					p.SendMessage("You are fully healed!")
-					p.location.Broadcast(fmt.Sprintf("%s radiates with holy light!", p.name), p)
+					p.SendMessage(ColorMagic("You recite sacred prayers and feel divine healing wash over you!"))
+					p.SendMessage(ColorHealing("You are fully healed!"))
+					p.location.Broadcast(fmt.Sprintf("%s radiates with holy light!", ColorName(p.name)), p)
 					return
 				case "shiny coin":
 					p.SendMessage("You flip the coin and make a wish, but nothing happens. It's just a coin.")
@@ -342,12 +346,12 @@ func (p *Player) HandleCommand(game *Game, command string) {
 					p.SendMessage("The key doesn't seem to fit any locks here.")
 					return
 				default:
-					p.SendMessage("You can't use that item.")
+					p.SendMessage(ColorError("You can't use that item."))
 					return
 				}
 			}
 		}
-		p.SendMessage("You don't have that item.")
+		p.SendMessage(ColorError("You don't have that item."))
 		
 	case "rest":
 		healAmount := p.maxHealth / 4
@@ -355,32 +359,32 @@ func (p *Player) HandleCommand(game *Game, command string) {
 			healAmount = 5
 		}
 		if p.health >= p.maxHealth {
-			p.SendMessage("You are already at full health.")
+			p.SendMessage(ColorInfo("You are already at full health."))
 			return
 		}
 		p.health += healAmount
 		if p.health > p.maxHealth {
 			p.health = p.maxHealth
 		}
-		p.SendMessage(fmt.Sprintf("You rest and recover %d health points.", healAmount))
-		p.location.Broadcast(fmt.Sprintf("%s sits down to rest.", p.name), p)
+		p.SendMessage(fmt.Sprintf("%sYou rest and recover %d health points.%s", ColorHealing(""), healAmount, ColorReset))
+		p.location.Broadcast(fmt.Sprintf("%s sits down to rest.", ColorName(p.name)), p)
 		
 	case "say":
 		if len(parts) < 2 {
-			p.SendMessage("Say what?")
+			p.SendMessage(ColorWarning("Say what?"))
 			return
 		}
 		message := strings.Join(parts[1:], " ")
-		p.SendMessage(fmt.Sprintf("You say: %s", message))
-		p.location.Broadcast(fmt.Sprintf("%s says: %s", p.name, message), p)
+		p.SendMessage(fmt.Sprintf("You say: %s%s%s", ColorBrightWhite, message, ColorReset))
+		p.location.Broadcast(fmt.Sprintf("%s says: %s%s%s", ColorName(p.name), ColorBrightWhite, message, ColorReset), p)
 		
 	case "quit", "q":
-		p.SendMessage("Goodbye!")
+		p.SendMessage(ColorInfo("Goodbye!"))
 		if p.conn != nil {
 			p.conn.Close()
 		}
 		
 	default:
-		p.SendMessage("Unknown command. Try: look, go <direction>, get <item>, drop <item>, inventory, examine <item>, equip <item>, equipment, attack <monster>, health, who, use <item>, rest, say, quit")
+		p.SendMessage(ColorError("Unknown command. Try: look, go <direction>, get <item>, drop <item>, inventory, examine <item>, equip <item>, equipment, attack <monster>, health, who, use <item>, rest, say, quit"))
 	}
 }

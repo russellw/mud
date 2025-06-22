@@ -41,18 +41,18 @@ func (m *Monster) Respawn() {
 
 func (m *Monster) GetStatus() string {
 	if !m.alive {
-		return m.name + " (dead)"
+		return m.name + ColorBrightBlack + " (dead)" + ColorReset
 	}
 	
 	healthPercent := float64(m.health) / float64(m.maxHealth)
 	
 	if healthPercent > 0.8 {
-		return m.name + " (healthy)"
+		return m.name + ColorGreen + " (healthy)" + ColorReset
 	} else if healthPercent > 0.5 {
-		return m.name + " (wounded)"
+		return m.name + ColorYellow + " (wounded)" + ColorReset
 	} else if healthPercent > 0.2 {
-		return m.name + " (badly wounded)"
+		return m.name + ColorRed + " (badly wounded)" + ColorReset
 	} else {
-		return m.name + " (near death)"
+		return m.name + ColorBrightRed + " (near death)" + ColorReset
 	}
 }
