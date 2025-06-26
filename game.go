@@ -527,6 +527,7 @@ func (g *Game) PlayerAttackMonster(player *Player, monsterName string) {
 	isDead := target.TakeDamage(damage)
 	
 	if isDead {
+		GlobalTelemetry.IncrementMonsterKills()
 		player.SendMessage(fmt.Sprintf("%sYou kill the %s!%s", ColorSuccess(""), ColorMonster(target.name), ColorReset))
 		player.location.Broadcast(fmt.Sprintf("%s kills the %s!", ColorName(player.name), ColorMonster(target.name)), player)
 	} else {
@@ -558,6 +559,7 @@ func (g *Game) MonsterAttackPlayer(monster *Monster, player *Player) {
 	isDead := player.TakeDamage(damage)
 	
 	if isDead {
+		GlobalTelemetry.IncrementPlayerDeaths()
 		player.SendMessage(ColorDamage("You have been killed!"))
 		player.location.Broadcast(fmt.Sprintf("%s has been killed by %s!", ColorName(player.name), ColorMonster(monster.name)), player)
 		g.respawnPlayer(player)

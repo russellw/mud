@@ -58,6 +58,7 @@ func (p *Player) HandleCommand(game *Game, command string) {
 	}
 	
 	cmd := strings.ToLower(parts[0])
+	GlobalTelemetry.IncrementCommandsExecuted(cmd)
 	
 	switch cmd {
 	case "look", "l":
@@ -137,6 +138,8 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		
 		p.location = nextRoom
 		nextRoom.players = append(nextRoom.players, p)
+		
+		GlobalTelemetry.RecordRoomVisit(nextRoom.name)
 		
 		nextRoom.Broadcast(fmt.Sprintf("%s arrives.", ColorName(p.name)), p)
 		p.HandleCommand(game, "look")
@@ -227,6 +230,7 @@ func (p *Player) HandleCommand(game *Game, command string) {
 			return
 		}
 		targetName := strings.ToLower(strings.Join(parts[1:], " "))
+		GlobalTelemetry.IncrementCombatActions()
 		game.PlayerAttackMonster(p, targetName)
 		
 	case "health", "hp":
@@ -378,6 +382,19 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		p.SendMessage(fmt.Sprintf("You say: %s%s%s", ColorBrightWhite, message, ColorReset))
 		p.location.Broadcast(fmt.Sprintf("%s says: %s%s%s", ColorName(p.name), ColorBrightWhite, message, ColorReset), p)
 		
+	case "stats", "telemetry":
+		jsonData, err := GlobalTelemetry.GetJSON()
+		if err != nil {
+			p.SendMessage(ColorError("Failed to get server statistics."))
+			return
+		}
+		p.SendMessage(fmt.Sprintf("%sServer Statistics:%s", ColorBold+ColorBrightCyan, ColorReset))
+		p.SendMessage(string(jsonData))
+		
+	case "status":
+		p.SendMessage(fmt.Sprintf("%sServer Status:%s", ColorBold+ColorBrightGreen, ColorReset))
+		p.SendMessage(GlobalTelemetry.GetSummary())
+		
 	case "quit", "q":
 		p.SendMessage(ColorInfo("Goodbye!"))
 		if p.conn != nil {
@@ -385,6 +402,6 @@ func (p *Player) HandleCommand(game *Game, command string) {
 		}
 		
 	default:
-		p.SendMessage(ColorError("Unknown command. Try: look, go <direction>, get <item>, drop <item>, inventory, examine <item>, equip <item>, equipment, attack <monster>, health, who, use <item>, rest, say, quit"))
+		p.SendMessage(ColorError("Unknown command. Try: look, go <direction>, get <item>, drop <item>, inventory, examine <item>, equip <item>, equipment, attack <monster>, health, who, use <item>, rest, say, stats, status, quit"))
 	}
 }

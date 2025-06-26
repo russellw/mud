@@ -6,10 +6,14 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 )
 
 func handleConnection(conn net.Conn, game *Game) {
 	defer conn.Close()
+	
+	GlobalTelemetry.IncrementConnections()
+	defer GlobalTelemetry.DecrementActiveConnections()
 	
 	fmt.Fprintf(conn, "%sWelcome to the MUD!%s\r\n", ColorBold+ColorBrightGreen, ColorReset)
 	fmt.Fprintf(conn, "%sWhat is your name?%s ", ColorBrightCyan, ColorReset)
@@ -36,6 +40,7 @@ func handleConnection(conn net.Conn, game *Game) {
 		damage:    5,
 	}
 	
+	GlobalTelemetry.IncrementPlayersCreated()
 	game.AddPlayer(player)
 	defer game.RemovePlayer(player)
 	
@@ -55,6 +60,8 @@ func handleConnection(conn net.Conn, game *Game) {
 func main() {
 	game := NewGame()
 	
+	GlobalTelemetry.StartPeriodicLogging(5 * time.Minute)
+	
 	listener, err := net.Listen("tcp", ":4000")
 	if err != nil {
 		log.Fatal("Failed to start server:", err)
@@ -63,6 +70,7 @@ func main() {
 	
 	fmt.Println("MUD server listening on port 4000")
 	fmt.Println("Connect with: telnet localhost 4000")
+	fmt.Printf("Telemetry: %s\n", GlobalTelemetry.GetSummary())
 	
 	for {
 		conn, err := listener.Accept()
